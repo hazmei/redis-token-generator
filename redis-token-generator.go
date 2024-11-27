@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
-    "log"
-    "crypto/tls"
+	// "crypto/tls"
 
 	"github.com/build-on-aws/aws-redis-iam-auth-golang/auth"
 	"github.com/redis/go-redis/v9"
@@ -22,21 +22,40 @@ const defaultRegion = "ap-southeast-1"
 
 func init() {
 	clusterEndpoint = os.Getenv("CLUSTER_ENDPOINT")
+
+	if clusterEndpoint == "" {
+		log.Fatal("CLUSTER_ENDPOINT env var is missing")
+	}
+
 	username = os.Getenv("USERNAME")
+
+	if username == "" {
+		log.Fatal("USERNAME env var is missing")
+	}
+
 	region = os.Getenv("AWS_REGION")
+
+	if region == "" {
+		region = defaultRegion
+	}
+
 	clusterName = os.Getenv("CLUSTER_NAME")
 
-	generator, err := auth.New("elasticache", clusterName, username, region)
-    if err != nil {
-        log.Fatal("failed to initialise token generator", err)
-    }
-    fmt.Println("Initialised token generator")
+	if clusterName == "" {
+		log.Fatal("CLUSTER_NAME env var is missing")
+	}
 
-    token, err := generator.Generate()
-    if err != nil {
-        log.Fatal("failed to generate auth token", err)
-    }
-    fmt.Println(token)
+	generator, err := auth.New("elasticache", clusterName, username, region)
+	if err != nil {
+		log.Fatal("failed to initialise token generator", err)
+	}
+	fmt.Println("Initialised token generator")
+
+	token, err := generator.Generate()
+	if err != nil {
+		log.Fatal("failed to generate auth token", err)
+	}
+	fmt.Println(token)
 
 	// client = redis.NewClusterClient(
 	// 	&redis.ClusterOptions{
@@ -54,7 +73,7 @@ func init() {
 	// 					}
 
 	// 					fmt.Println("auth token generated successfully")
-    //                     fmt.Println(token)
+	//                     fmt.Println(token)
 
 	// 					return opt.Username, token
 	// 				},
@@ -63,8 +82,8 @@ func init() {
 	// 		},
 	// 	})
 
-    // fmt.Println("Done creating new redis client")
-    // fmt.Println(client)
+	// fmt.Println("Done creating new redis client")
+	// fmt.Println(client)
 	// err = client.Ping(context.Background()).Err()
 	// if err != nil {
 	// 	log.Fatal("failed to connect to memorydb -", err)
